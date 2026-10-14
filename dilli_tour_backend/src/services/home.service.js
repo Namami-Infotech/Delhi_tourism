@@ -1,6 +1,6 @@
-const prisma = require('../config/database');
-const categoryService = require('./category.service');
-const bannerService = require('./banner.service');
+const prisma = require("../config/database");
+const categoryService = require("./category.service");
+const bannerService = require("./banner.service");
 
 /**
  * Calculate the Haversine distance between two coordinates in kilometers.
@@ -60,9 +60,11 @@ const getNearbyPlaces = async (paramsOrLat, optionalLon, options = {}) => {
   let lon;
   let opts = {};
 
-  if (typeof paramsOrLat === 'object' && paramsOrLat !== null) {
-    lat = paramsOrLat.lat !== undefined ? paramsOrLat.lat : paramsOrLat.latitude;
-    lon = paramsOrLat.lon !== undefined ? paramsOrLat.lon : paramsOrLat.longitude;
+  if (typeof paramsOrLat === "object" && paramsOrLat !== null) {
+    lat =
+      paramsOrLat.lat !== undefined ? paramsOrLat.lat : paramsOrLat.latitude;
+    lon =
+      paramsOrLat.lon !== undefined ? paramsOrLat.lon : paramsOrLat.longitude;
     opts = { ...paramsOrLat };
   } else {
     lat = paramsOrLat;
@@ -74,13 +76,17 @@ const getNearbyPlaces = async (paramsOrLat, optionalLon, options = {}) => {
   const userLon = parseFloat(lon);
 
   if (isNaN(userLat) || isNaN(userLon)) {
-    const err = new Error('Valid latitude and longitude (lat, lon) are required.');
+    const err = new Error(
+      "Valid latitude and longitude (lat, lon) are required.",
+    );
     err.statusCode = 400;
     throw err;
   }
 
   if (userLat < -90 || userLat > 90 || userLon < -180 || userLon > 180) {
-    const err = new Error('Latitude must be between -90 and 90, and longitude between -180 and 180.');
+    const err = new Error(
+      "Latitude must be between -90 and 90, and longitude between -180 and 180.",
+    );
     err.statusCode = 400;
     throw err;
   }
@@ -105,15 +111,18 @@ const getNearbyPlaces = async (paramsOrLat, optionalLon, options = {}) => {
 
   const places = await prisma.place.findMany({
     where,
-    include: {
-      categories: { include: { category: true } },
-      circuits: { include: { circuit: true } },
-      galleries: { orderBy: { displayOrder: 'asc' } },
-      features: true,
-    },
+    // include: {
+    //   categories: { include: { category: true } },
+    //   circuits: { include: { circuit: true } },
+    //   galleries: { orderBy: { displayOrder: 'asc' } },
+    //   features: true,
+    // },
   });
 
-  const parsedMaxDistance = opts.maxDistanceKm || opts.radius ? parseFloat(opts.maxDistanceKm || opts.radius) : null;
+  const parsedMaxDistance =
+    opts.maxDistanceKm || opts.radius
+      ? parseFloat(opts.maxDistanceKm || opts.radius)
+      : null;
   const parsedLimit = opts.limit ? parseInt(opts.limit, 10) : null;
 
   // Calculate distance for each place and map with distance metrics
@@ -126,7 +135,12 @@ const getNearbyPlaces = async (paramsOrLat, optionalLon, options = {}) => {
         return null;
       }
 
-      const rawDistKm = calculateDistanceKm(userLat, userLon, placeLat, placeLon);
+      const rawDistKm = calculateDistanceKm(
+        userLat,
+        userLon,
+        placeLat,
+        placeLon,
+      );
       const distanceKm = parseFloat(rawDistKm.toFixed(2));
       const distanceMeters = Math.round(rawDistKm * 1000);
       const howFar = formatDistanceText(rawDistKm);
@@ -137,7 +151,10 @@ const getNearbyPlaces = async (paramsOrLat, optionalLon, options = {}) => {
         distance: distanceKm, // numeric distance in km (shortest distance first)
         distanceKm,
         distanceMeters,
-        distanceText: distanceKm < 1 ? `${distanceMeters} m` : `${distanceKm.toFixed(2)} km`,
+        distanceText:
+          distanceKm < 1
+            ? `${distanceMeters} m`
+            : `${distanceKm.toFixed(2)} km`,
         howFar,
       };
     })
@@ -148,8 +165,14 @@ const getNearbyPlaces = async (paramsOrLat, optionalLon, options = {}) => {
 
   // Filter by max distance if requested
   let filteredPlaces = placesWithDistance;
-  if (parsedMaxDistance !== null && !isNaN(parsedMaxDistance) && parsedMaxDistance > 0) {
-    filteredPlaces = filteredPlaces.filter((p) => p.distanceKm <= parsedMaxDistance);
+  if (
+    parsedMaxDistance !== null &&
+    !isNaN(parsedMaxDistance) &&
+    parsedMaxDistance > 0
+  ) {
+    filteredPlaces = filteredPlaces.filter(
+      (p) => p.distanceKm <= parsedMaxDistance,
+    );
   }
 
   // Apply limit if specified
@@ -167,10 +190,7 @@ const getNearbyPlaces = async (paramsOrLat, optionalLon, options = {}) => {
  * - Optional nearby places if coordinates (lat, lon) are provided
  */
 const getHomeData = async (coords = null) => {
-  const promises = [
-    bannerService.getAll(),
-    categoryService.getAll(),
-  ];
+  const promises = [bannerService.getAll(), categoryService.getAll()];
 
   const hasCoords =
     coords &&
@@ -199,4 +219,3 @@ module.exports = {
   calculateDistanceKm,
   formatDistanceText,
 };
-
