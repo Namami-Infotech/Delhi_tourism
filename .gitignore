@@ -10,6 +10,12 @@ node_modules/
 .env.test.local
 .env.production.local
 
+#i want to igoner also
+dilli_tour_backend/uploads/
+#dilli_tour_frontend/uploads/
+.claude/
+docs/
+
 # Next.js
 frontend/.next/
 frontend/out/
