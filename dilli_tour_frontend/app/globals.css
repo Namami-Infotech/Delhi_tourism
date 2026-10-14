@@ -1,0 +1,98 @@
+/* Custom fonts import must precede all other CSS */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-playfair: 'Playfair Display', Georgia, serif;
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter);
+}
+
+h1, h2, h3, h4, .font-serif {
+  font-family: var(--font-playfair);
+}
+
+/* Custom components */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-primary-700 border border-primary-300 hover:bg-primary-50 focus:ring-primary-500;
+  }
+
+  .btn-accent {
+    @apply bg-accent-600 text-white hover:bg-accent-700 focus:ring-accent-500;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-stone-100 overflow-hidden;
+  }
+
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-padding {
+    @apply py-16 lg:py-24;
+  }
+
+  .heading-xl {
+    @apply text-4xl lg:text-5xl font-bold font-serif text-stone-900;
+  }
+
+  .heading-lg {
+    @apply text-3xl lg:text-4xl font-bold font-serif text-stone-900;
+  }
+
+  .heading-md {
+    @apply text-2xl lg:text-3xl font-semibold font-serif text-stone-900;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Utilities */
+@layer utilities {
+  .gradient-primary {
+    background: linear-gradient(135deg, #d4821e 0%, #e29c3f 100%);
+  }
+
+  .gradient-accent {
+    background: linear-gradient(135deg, #017cc7 0%, #37b7f8 100%);
+  }
+
+  .gradient-delhi {
+    background: linear-gradient(135deg, #b93822 0%, #d4821e 50%, #f4daab 100%);
+  }
+
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  .text-shadow-lg {
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+}

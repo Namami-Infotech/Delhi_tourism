@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: delhi_tourism_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: delhi_tourism
+      MYSQL_USER: delhi_user
+      MYSQL_PASSWORD: delhi_password
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - delhi_tourism_network
+
+  backend:
+    build:
+      context: ./dilli_tour_backend
+      dockerfile: Dockerfile
+    container_name: delhi_tourism_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql://delhi_user:delhi_password@mysql:3306/delhi_tourism
+      JWT_SECRET: change_this_in_production
+      PORT: 5000
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - '5000:5000'
+    depends_on:
+      - mysql
+    networks:
+      - delhi_tourism_network
+    volumes:
+      - ./dilli_tour_backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: ./dilli_tour_frontend
+      dockerfile: Dockerfile
+    container_name: delhi_tourism_frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api/v1
+      NEXT_PUBLIC_MAP_PROVIDER: google
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend
+    networks:
+      - delhi_tourism_network
+    volumes:
+      - ./dilli_tour_frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  mysql_data:
+
+networks:
+  delhi_tourism_network:
+    driver: bridge

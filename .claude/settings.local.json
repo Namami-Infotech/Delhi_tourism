@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:/Users/shazz/Desktop/namami backend/delhi_tourism/dilli_tour_backend\" && mkdir -p prisma/migrations/20241008000000_init)",
+      "Bash(npx prisma *)",
+      "Bash(npm run *)",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

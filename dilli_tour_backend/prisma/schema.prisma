@@ -1,0 +1,265 @@
+// This is your Prisma schema file.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Admin ───────────────────────────────────────────────────────────────────
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         AdminRole @default(ADMIN)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+// ─── Category ────────────────────────────────────────────────────────────────
+
+model Category {
+  id               Int      @id @default(autoincrement())
+  name             String
+  slug             String   @unique
+  shortDescription String?  @db.Text
+  description      String?  @db.LongText
+  image            String?
+  icon             String?
+  displayOrder     Int      @default(0)
+  isFeatured       Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  circuits  Circuit[]
+  places    PlaceCategory[]
+  galleries Gallery[]
+
+  @@map("categories")
+}
+
+// ─── Circuit ─────────────────────────────────────────────────────────────────
+
+model Circuit {
+  id               Int      @id @default(autoincrement())
+  categoryId       Int
+  name             String
+  slug             String   @unique
+  tagline          String?
+  shortDescription String?  @db.Text
+  description      String?  @db.LongText
+  coverImage       String?
+  duration         String?
+  bestTime         String?
+  displayOrder     Int      @default(0)
+  isFeatured       Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  category  Category       @relation(fields: [categoryId], references: [id])
+  places    CircuitPlace[]
+  galleries Gallery[]
+
+  @@map("circuits")
+}
+
+// ─── Place ───────────────────────────────────────────────────────────────────
+
+model Place {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  slug                 String   @unique
+  shortDescription     String?  @db.Text
+  description          String?  @db.LongText
+  historicalInformation String? @db.LongText
+  address              String?
+  locality             String?
+  latitude             Decimal? @db.Decimal(10, 8)
+  longitude            Decimal? @db.Decimal(11, 8)
+  openingTime          String?
+  closingTime          String?
+  openDays             String?
+  ticketInformation    String?  @db.Text
+  contactInformation   String?
+  website              String?
+  coverImage           String?
+  imageUrl             String?
+  icon                 String?
+  isFeatured           Boolean  @default(false)
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  categories     PlaceCategory[]
+  circuits       CircuitPlace[]
+  galleries      Gallery[]
+  features       PlaceFeature[]
+  itineraryStops ItineraryStop[]
+
+  @@map("places")
+}
+
+// ─── Place ↔ Category (many-to-many) ─────────────────────────────────────────
+
+model PlaceCategory {
+  placeId    Int
+  categoryId Int
+
+  place    Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([placeId, categoryId])
+  @@map("place_categories")
+}
+
+// ─── Circuit ↔ Place (many-to-many) ──────────────────────────────────────────
+
+model CircuitPlace {
+  circuitId Int
+  placeId   Int
+  sequence  Int @default(0)
+
+  circuit Circuit @relation(fields: [circuitId], references: [id], onDelete: Cascade)
+  place   Place   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@id([circuitId, placeId])
+  @@map("circuit_places")
+}
+
+// ─── Place Features ───────────────────────────────────────────────────────────
+
+model PlaceFeature {
+  id      Int    @id @default(autoincrement())
+  placeId Int
+  feature String
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@map("place_features")
+}
+
+// ─── Itinerary ───────────────────────────────────────────────────────────────
+
+model Itinerary {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  description String?  @db.LongText
+  duration    String?
+  coverImage  String?
+  isFeatured  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  stops     ItineraryStop[]
+  galleries Gallery[]
+
+  @@map("itineraries")
+}
+
+// ─── Itinerary Stop ───────────────────────────────────────────────────────────
+
+model ItineraryStop {
+  id                Int    @id @default(autoincrement())
+  itineraryId       Int
+  placeId           Int
+  day               Int    @default(1)
+  sequence          Int    @default(0)
+  estimatedDuration String?
+  notes             String? @db.Text
+
+  itinerary Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  place     Place     @relation(fields: [placeId], references: [id])
+
+  @@map("itinerary_stops")
+}
+
+// ─── Event ───────────────────────────────────────────────────────────────────
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  description String?  @db.LongText
+  startDate   DateTime
+  endDate     DateTime?
+  venue       String?
+  address     String?
+  coverImage  String?
+  category    String?
+  isFeatured  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  galleries Gallery[]
+
+  @@map("events")
+}
+
+// ─── Gallery ─────────────────────────────────────────────────────────────────
+
+model Gallery {
+  id           Int    @id @default(autoincrement())
+  entityType   String // 'place' | 'circuit' | 'category' | 'event' | 'itinerary'
+  entityId     Int
+  imageUrl     String
+  title        String?
+  altText      String?
+  displayOrder Int    @default(0)
+
+  // Optional typed foreign keys for referential integrity
+  place     Place?     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  placeId   Int?
+  circuit     Circuit?   @relation(fields: [circuitId], references: [id], onDelete: Cascade)
+  circuitId   Int?
+  category    Category?  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  Int?
+  event       Event?     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId   Int?
+  itinerary Itinerary? @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  itineraryId Int?
+
+  @@map("galleries")
+}
+
+// ─── Banner ───────────────────────────────────────────────────────────────────
+
+model Banner {
+  id           Int      @id @default(autoincrement())
+  title        String?
+  subtitle     String?
+  imageUrl     String
+  linkUrl      String?
+  displayOrder Int      @default(0)
+  theme        String   @default("LIGHT")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("banners")
+}
+
