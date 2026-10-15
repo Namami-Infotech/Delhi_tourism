@@ -605,7 +605,11 @@ async function main() {
     // Remove existing features and recreate
     await prisma.placeFeature.deleteMany({ where: { placeId: place.id } });
     await prisma.placeFeature.createMany({
-      data: features.map((f) => ({ placeId: place.id, feature: f })),
+      data: features.map((f) =>
+        typeof f === "string"
+          ? { placeId: place.id, feature: f }
+          : { placeId: place.id, feature: f.feature, description: f.description || null }
+      ),
     });
   }
   console.log("✅ Place features created.");

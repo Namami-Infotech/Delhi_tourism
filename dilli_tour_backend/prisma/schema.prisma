@@ -149,9 +149,10 @@ model CircuitPlace {
 // ─── Place Features ───────────────────────────────────────────────────────────
 
 model PlaceFeature {
-  id      Int    @id @default(autoincrement())
-  placeId Int
-  feature String
+  id          Int     @id @default(autoincrement())
+  placeId     Int
+  feature     String
+  description String? @db.LongText
 
   place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
 

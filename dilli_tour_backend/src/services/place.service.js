@@ -82,7 +82,13 @@ const create = async (data) => {
         ? { create: circuitIds.map((id) => ({ circuitId: parseInt(id) })) }
         : undefined,
       features: features && features.length > 0
-        ? { create: features.map((f) => ({ feature: f })) }
+        ? {
+            create: features.map((f) =>
+              typeof f === 'string'
+                ? { feature: f }
+                : { feature: f.feature, description: f.description || null }
+            ),
+          }
         : undefined,
     },
     include: {
@@ -130,7 +136,11 @@ const update = async (id, data) => {
     await prisma.placeFeature.deleteMany({ where: { placeId } });
     if (features.length > 0) {
       await prisma.placeFeature.createMany({
-        data: features.map((f) => ({ placeId, feature: f })),
+        data: features.map((f) =>
+          typeof f === 'string'
+            ? { placeId, feature: f }
+            : { placeId, feature: f.feature, description: f.description || null }
+        ),
       });
     }
   }

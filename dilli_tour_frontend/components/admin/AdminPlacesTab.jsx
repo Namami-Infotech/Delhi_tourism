@@ -33,6 +33,7 @@ export default function AdminPlacesTab() {
     isFeatured: false,
     isActive: true,
     categoryIds: [],
+    features: [],
   };
   const [formData, setFormData] = useState(initialForm);
 
@@ -81,6 +82,7 @@ export default function AdminPlacesTab() {
       isFeatured: !!place.isFeatured,
       isActive: place.isActive !== undefined ? place.isActive : true,
       categoryIds: place.categories ? place.categories.map((c) => c.category?.id || c.categoryId).filter(Boolean) : [],
+      features: place.features ? place.features.map((f) => ({ feature: f.feature, description: f.description || '' })) : [],
     });
     setModalOpen(true);
   };
@@ -469,6 +471,72 @@ export default function AdminPlacesTab() {
                   placeholder="Historical context, architectural features, highlights..."
                   className="w-full px-3 py-2 border border-stone-200 rounded-lg outline-none focus:border-amber-500"
                 />
+              </div>
+
+              {/* Features & In-Depth Details */}
+              <div className="pt-2 border-t border-stone-200">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block font-semibold text-stone-800">
+                    Key Features & In-Depth Content ({formData.features?.length || 0})
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        features: [...(formData.features || []), { feature: '', description: '' }],
+                      })
+                    }
+                    className="px-2.5 py-1 text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg cursor-pointer"
+                  >
+                    + Add Feature
+                  </button>
+                </div>
+                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                  {formData.features && formData.features.length > 0 ? (
+                    formData.features.map((feat, fIdx) => (
+                      <div key={fIdx} className="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={feat.feature}
+                            onChange={(e) => {
+                              const updated = [...formData.features];
+                              updated[fIdx].feature = e.target.value;
+                              setFormData({ ...formData, features: updated });
+                            }}
+                            placeholder="Feature Title (e.g. Complete history, Photography)..."
+                            className="flex-1 px-2.5 py-1.5 text-xs font-bold border border-stone-300 rounded-lg bg-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = formData.features.filter((_, idx) => idx !== fIdx);
+                              setFormData({ ...formData, features: updated });
+                            }}
+                            className="text-red-500 hover:text-red-700 text-xs px-2 py-1 cursor-pointer font-bold"
+                            title="Remove feature"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <textarea
+                          rows={2}
+                          value={feat.description || ''}
+                          onChange={(e) => {
+                            const updated = [...formData.features];
+                            updated[fIdx].description = e.target.value;
+                            setFormData({ ...formData, features: updated });
+                          }}
+                          placeholder="Detailed content, facts, or guidelines for this feature..."
+                          className="w-full px-2.5 py-1.5 text-xs border border-stone-300 rounded-lg bg-white font-light"
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-stone-400 italic">No custom features added yet.</p>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-6 pt-2">

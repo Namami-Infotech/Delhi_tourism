@@ -10,6 +10,7 @@ import SectionHeading from '../../../components/ui/SectionHeading';
 import Badge from '../../../components/ui/Badge';
 import Card from '../../../components/ui/Card';
 import PlaceCard from '../../../components/places/PlaceCard';
+import PlaceFeaturesSection from '../../../components/places/PlaceFeaturesSection';
 import { getPlaceCover } from '../../../lib/placeImages';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
@@ -46,7 +47,7 @@ export async function generateMetadata({ params }) {
 
 async function getPlace(slug) {
   try {
-    const res = await fetch(`${API_BASE_URL}/places/${slug}`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE_URL}/places/${slug}`, { cache: 'no-store' });
     if (!res.ok) return null;
     const json = await res.json();
     return json?.data || null;
@@ -161,21 +162,8 @@ export default async function PlaceDetailPage({ params }) {
               </div>
             )}
 
-            {/* Features Tags */}
-            {features.length > 0 && (
-              <div>
-                <h3 className="font-serif font-bold text-xl text-stone-900 mb-3">
-                  Key Features & Highlights
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {features.map((f, idx) => (
-                    <Badge key={idx} variant="heritage" size="md">
-                      ✓ {f.feature || f}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Interactive Features & Detailed Sections */}
+            <PlaceFeaturesSection features={features} placeName={place.name} />
 
             {/* Image Gallery */}
             {place.galleries && place.galleries.length > 0 && (
