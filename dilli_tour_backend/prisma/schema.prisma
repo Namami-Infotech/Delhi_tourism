@@ -109,12 +109,19 @@ model Place {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
+  // Ticket Pricing
+  entryFeeIndian        Decimal? @default(0) @db.Decimal(10, 2)
+  entryFeeForeigner     Decimal? @default(0) @db.Decimal(10, 2)
+  entryFeeChild         Decimal? @default(0) @db.Decimal(10, 2)
+  isTicketRequired      Boolean  @default(true)
+
   // Relations
   categories     PlaceCategory[]
   circuits       CircuitPlace[]
   galleries      Gallery[]
   features       PlaceFeature[]
   itineraryStops ItineraryStop[]
+  bookings       Booking[]
 
   @@map("places")
 }
@@ -253,7 +260,7 @@ model Banner {
   id           Int      @id @default(autoincrement())
   title        String?
   subtitle     String?
-  imageUrl     String
+  imageUrl     String   @db.VarChar(555)
   linkUrl      String?
   displayOrder Int      @default(0)
   theme        String   @default("LIGHT")
@@ -262,5 +269,131 @@ model Banner {
   updatedAt    DateTime @updatedAt
 
   @@map("banners")
+}
+
+// ─── Booking Status Enums ───────────────────────────────────────────────────
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ─── Booking ─────────────────────────────────────────────────────────────────
+
+model Booking {
+  id                 Int           @id @default(autoincrement())
+  bookingNumber      String        @unique
+  placeId            Int
+  customerName       String
+  customerEmail      String
+  customerPhone      String
+  visitDate          DateTime
+  timeSlot           String
+  indianAdults       Int           @default(0)
+  indianChildren     Int           @default(0)
+  foreignerAdults    Int           @default(0)
+  foreignerChildren  Int           @default(0)
+  totalTickets       Int           @default(1)
+  subtotal           Decimal       @db.Decimal(10, 2)
+  taxAmount          Decimal       @default(0) @db.Decimal(10, 2)
+  totalAmount        Decimal       @db.Decimal(10, 2)
+  currency           String        @default("INR")
+  bookingStatus      BookingStatus @default(PENDING)
+  paymentStatus      PaymentStatus @default(PENDING)
+  ticketPassCode     String?       @unique
+  idProofType        String?
+  idProofNumber      String?
+  notes              String?       @db.Text
+  cancellationReason String?       @db.Text
+  cancelledAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  userId             Int?
+
+  // Relations
+  place    Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  payments Payment[]
+
+  @@index([visitDate])
+  @@index([customerEmail])
+  @@index([bookingStatus])
+  @@map("bookings")
+}
+
+// ─── Payment ─────────────────────────────────────────────────────────────────
+
+model Payment {
+  id                Int           @id @default(autoincrement())
+  bookingId         Int
+  razorpayOrderId   String?       @unique
+  razorpayPaymentId String?       @unique
+  razorpaySignature String?
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  method            String?
+  bank              String?
+  wallet            String?
+  vpa               String?
+  errorCode         String?
+  errorDescription  String?       @db.Text
+  rawResponse       String?       @db.LongText
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([razorpayOrderId])
+  @@index([razorpayPaymentId])
+  @@map("payments")
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────
+
+model User {
+  id              Int       @id @default(autoincrement())
+  name            String?
+  email           String?   @unique
+  phone           String?   @unique
+  passwordHash    String?
+  avatar          String?
+  role            String    @default("USER")
+  isPhoneVerified Boolean   @default(false)
+  isEmailVerified Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  bookings        Booking[]
+
+  @@map("users")
+}
+
+// ─── OtpVerification ─────────────────────────────────────────────────────────
+
+model OtpVerification {
+  id        Int      @id @default(autoincrement())
+  phone     String
+  otp       String
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@map("otp_verifications")
 }
 

@@ -22,6 +22,10 @@ const createPlaceValidator = [
   body("openingTime").optional().trim(),
   body("closingTime").optional().trim(),
   body("ticketInformation").optional().trim(),
+  body("entryFeeIndian").optional().isFloat({ min: 0 }).withMessage("entryFeeIndian must be a non-negative number."),
+  body("entryFeeForeigner").optional().isFloat({ min: 0 }).withMessage("entryFeeForeigner must be a non-negative number."),
+  body("entryFeeChild").optional().isFloat({ min: 0 }).withMessage("entryFeeChild must be a non-negative number."),
+  body("isTicketRequired").optional().isBoolean().withMessage("isTicketRequired must be a boolean."),
   body("contactInformation").optional().trim(),
   // body('website').optional().trim().isURL().withMessage('Website must be a valid URL.'),
   body("coverImage").optional().trim(),
@@ -72,6 +76,10 @@ const updatePlaceValidator = [
   body("openingTime").optional().trim(),
   body("closingTime").optional().trim(),
   body("ticketInformation").optional().trim(),
+  body("entryFeeIndian").optional().isFloat({ min: 0 }).withMessage("entryFeeIndian must be a non-negative number."),
+  body("entryFeeForeigner").optional().isFloat({ min: 0 }).withMessage("entryFeeForeigner must be a non-negative number."),
+  body("entryFeeChild").optional().isFloat({ min: 0 }).withMessage("entryFeeChild must be a non-negative number."),
+  body("isTicketRequired").optional().isBoolean().withMessage("isTicketRequired must be a boolean."),
   body("contactInformation").optional().trim(),
   // body("website")
   //   .optional()

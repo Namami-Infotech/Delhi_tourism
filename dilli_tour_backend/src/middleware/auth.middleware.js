@@ -36,6 +36,77 @@ const protect = async (req, res, next) => {
 };
 
 /**
+ * Protect tourist/user routes — verifies JWT and attaches user to req.user.
+ */
+const protectUser = async (req, res, next) => {
+  try {
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Not authenticated. Please log in.' });
+    }
+
+    const decoded = jwt.verify(token, env.JWT_SECRET);
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        role: true,
+        isPhoneVerified: true,
+        isEmailVerified: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user || !user.isActive) {
+      return res.status(401).json({ success: false, message: 'User account not found or deactivated.' });
+    }
+
+    req.user = user;
+    return next();
+  } catch (err) {
+    return res.status(401).json({ success: false, message: 'Invalid or expired user session token.' });
+  }
+};
+
+/**
+ * Optional user middleware — attaches user if token is present, continues otherwise
+ */
+const optionalUser = async (req, res, next) => {
+  try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    if (token) {
+      const decoded = jwt.verify(token, env.JWT_SECRET);
+      if (decoded && decoded.id) {
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.id },
+          select: { id: true, name: true, email: true, phone: true, role: true },
+        });
+        if (user && user.isActive) {
+          req.user = user;
+        }
+      }
+    }
+  } catch {
+    // Ignore invalid optional tokens
+  }
+  return next();
+};
+
+/**
  * Restrict access to specific admin roles.
  * Usage: restrict('SUPER_ADMIN', 'ADMIN')
  */
@@ -51,4 +122,4 @@ const restrict = (...roles) => {
   };
 };
 
-module.exports = { protect, restrict };
+module.exports = { protect, protectAdmin: protect, protectUser, optionalUser, restrict };

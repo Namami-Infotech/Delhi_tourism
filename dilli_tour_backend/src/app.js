@@ -19,6 +19,7 @@ const searchRoutes = require('./routes/search.routes');
 const adminRoutes = require('./routes/admin.routes');
 const bannerRoutes = require('./routes/banner.routes');
 const homeRoutes = require('./routes/home.routes');
+const bookingRoutes = require('./routes/booking.routes');
 
 const app = express();
 
@@ -54,7 +55,7 @@ app.use(express.urlencoded({ extended: true }));
 // Rate limiting on auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,
+  max: 100,
   message: { success: false, message: 'Too many requests. Please try again later.' },
 });
 
@@ -74,6 +75,7 @@ app.use('/api/v1/galleries', galleryRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/home', homeRoutes);
 app.use('/api/v1/banners', bannerRoutes);
+app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
 // 404 handler

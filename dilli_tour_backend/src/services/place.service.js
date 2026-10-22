@@ -67,13 +67,23 @@ const getBySlug = async (slug) => {
   return place;
 };
 
+const formatPlaceFields = (fields) => {
+  const data = { ...fields };
+  if (data.entryFeeIndian !== undefined) data.entryFeeIndian = Number(data.entryFeeIndian) || 0;
+  if (data.entryFeeForeigner !== undefined) data.entryFeeForeigner = Number(data.entryFeeForeigner) || 0;
+  if (data.entryFeeChild !== undefined) data.entryFeeChild = Number(data.entryFeeChild) || 0;
+  if (data.isTicketRequired !== undefined) data.isTicketRequired = Boolean(data.isTicketRequired);
+  return data;
+};
+
 const create = async (data) => {
   const { categoryIds, circuitIds, features, ...rest } = data;
   const slug = slugify(rest.name, { lower: true, strict: true });
+  const formattedRest = formatPlaceFields(rest);
 
   return prisma.place.create({
     data: {
-      ...rest,
+      ...formattedRest,
       slug,
       categories: categoryIds && categoryIds.length > 0
         ? { create: categoryIds.map((id) => ({ categoryId: parseInt(id) })) }
@@ -109,8 +119,9 @@ const update = async (id, data) => {
   }
 
   const { categoryIds, circuitIds, features, ...rest } = data;
-  if (rest.name && rest.name !== existing.name) {
-    rest.slug = slugify(rest.name, { lower: true, strict: true });
+  const formattedRest = formatPlaceFields(rest);
+  if (formattedRest.name && formattedRest.name !== existing.name) {
+    formattedRest.slug = slugify(formattedRest.name, { lower: true, strict: true });
   }
 
   // Update relations if explicitly provided
@@ -147,7 +158,7 @@ const update = async (id, data) => {
 
   return prisma.place.update({
     where: { id: placeId },
-    data: rest,
+    data: formattedRest,
     include: {
       categories: { include: { category: true } },
       circuits: { include: { circuit: true } },

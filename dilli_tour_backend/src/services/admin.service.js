@@ -14,6 +14,9 @@ const getDashboardStats = async () => {
     featuredPlaces,
     recentPlaces,
     recentCircuits,
+    totalBookings,
+    revenueAggregate,
+    recentBookings,
   ] = await Promise.all([
     prisma.category.count({ where: { isActive: true } }),
     prisma.circuit.count({ where: { isActive: true } }),
@@ -31,6 +34,16 @@ const getDashboardStats = async () => {
       orderBy: { createdAt: 'desc' },
       select: { id: true, name: true, slug: true, createdAt: true, isFeatured: true, isActive: true },
     }),
+    prisma.booking.count(),
+    prisma.booking.aggregate({
+      where: { paymentStatus: 'PAID' },
+      _sum: { totalAmount: true },
+    }),
+    prisma.booking.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: { place: { select: { name: true } } },
+    }),
   ]);
 
   return {
@@ -42,6 +55,9 @@ const getDashboardStats = async () => {
     featuredPlaces,
     recentPlaces,
     recentCircuits,
+    totalBookings,
+    totalRevenue: Number(revenueAggregate._sum.totalAmount || 0),
+    recentBookings,
   };
 };
 

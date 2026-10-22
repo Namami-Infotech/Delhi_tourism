@@ -8,6 +8,8 @@
     "dev": "nodemon src/server.js",
     "seed": "node prisma/seed.js",
     "test": "node tests/api.test.js",
+    "test:booking": "node tests/booking.test.js",
+    "test:user_auth": "node tests/user_auth.test.js",
     "lint": "eslint src --ext .js",
     "lint:fix": "eslint src --ext .js --fix"
   },
@@ -23,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^2.4.0",
+    "razorpay": "^2.9.8",
     "slugify": "^1.6.6"
   },
   "devDependencies": {
